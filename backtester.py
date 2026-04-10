@@ -271,7 +271,7 @@ def run_backtest(
 def print_summary(results: dict[str, BacktestResult]):
     """Print a summary table of all backtest results."""
     print("\n" + "=" * 75)
-    print(f"  {'Symbol':<14} {'Trades':>6} {'Win%':>6} {'PnL$':>8} {'DD%':>7} {'Sharpe':>7} {'PF':>6}")$':>8} {'DD%':>7} {'Sharpe':>7} {'PF':>6}")$':>8} {'DD%':>7} {'Sharpe':>7} {'PF':>6}")
+    print(f"  {'Symbol':<14} {'Trades':>6} {'Win%':>6} {'PnL$':>8} {'DD%':>7} {'Sharpe':>7} {'PF':>6}")
     print("=" * 75)
 
     total_pnl = 0.0

@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+logs/
+catboost_info/
+*.cbm
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.idea/
+.vscode/
