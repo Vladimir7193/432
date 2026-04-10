@@ -6,10 +6,12 @@ config.py — Centralized configuration for CatBoost HFT Bot
 import os
 
 # ── Exchange ───────────────────────────────────────────────
-# ВАЖНО: Замени на свои MAINNET ключи с правами Contract Trade (Read + Write)
-API_KEY    = os.getenv("BYBIT_API_KEY",    "3zvAfoVSsOeF4dajgU")
-API_SECRET = os.getenv("BYBIT_API_SECRET", "UC2xpqvh6Th7LQYRMuAgsmkoiXrTx8DcXPW5")
-TESTNET    = False          # False → mainnet (РЕАЛЬНАЯ ТОРГОВЛЯ)
+# ВАЖНО: Установи BYBIT_API_KEY и BYBIT_API_SECRET в переменных окружения
+# (или создай файл .env). Никогда не вставляй реальные ключи в код!
+API_KEY    = os.getenv("BYBIT_API_KEY",    "")
+API_SECRET = os.getenv("BYBIT_API_SECRET", "")
+# ПРЕДУПРЕЖДЕНИЕ: Оставь True для тестовой среды! False = РЕАЛЬНАЯ ТОРГОВЛЯ
+TESTNET    = True           # True → testnet (безопасно); False → mainnet
 
 # ── Market ────────────────────────────────────────────────
 SYMBOL     = "BTCUSDT"    # основная пара (используется в edge_tester и whale_logger)

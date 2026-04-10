@@ -27,6 +27,7 @@ from pybit.unified_trading import HTTP
 
 import config as cfg
 from market_data import fetch_klines, get_orderbook_imbalance, get_ticker
+from paper_position import PaperPosition
 from signal_engine import ModelManager, compute_features, FEATURE_COLS
 from smart_money import get_bias_from_smart_money, detect_whale_bars
 from signal_logger import log_signal, log_trade, log_whale_event
@@ -51,64 +52,6 @@ logging.basicConfig(
 logger = logging.getLogger("bybit_paper_bot")
 
 # -----------------------------------------------------------------------------
-# PAPER POSITION TRACKER
-# -----------------------------------------------------------------------------
-
-class PaperPosition:
-    """Simple in-memory paper position."""
-
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.side: str | None = None
-        self.qty: float = 0.0
-        self.entry_price: float = 0.0
-        self.sl: float = 0.0
-        self.tp: float = 0.0
-        self.trail_sl: float | None = None
-        self.entry_ts: float = 0.0
-
-    @property
-    def is_open(self) -> bool:
-        return self.side is not None
-
-    def open(self, side: str, price: float, qty: float, sl: float, tp: float):
-        self.side = side
-        self.qty = qty
-        self.entry_price = price
-        self.sl = sl
-        self.tp = tp
-        self.trail_sl = None
-        self.entry_ts = time.time()
-        logger.info(
-            "Open %s @ %.2f | qty=%.4f | SL=%.2f | TP=%.2f",
-            side, price, qty, sl, tp,
-        )
-
-    def close(self, exit_price: float, reason: str):
-        duration = time.time() - self.entry_ts
-        log_trade(
-            symbol=cfg.SYMBOL,
-            side=self.side,
-            qty=self.qty,
-            entry_price=self.entry_price,
-            exit_price=exit_price,
-            sl=self.sl,
-            tp=self.tp,
-            exit_reason=reason,
-            duration_sec=duration,
-        )
-        pnl = (exit_price - self.entry_price) * self.qty * (1 if self.side == "Buy" else -1)
-        logger.info("Close %s @ %.2f | reason=%s | PnL=%.2f USDT", self.side, exit_price, reason, pnl)
-        self.reset()
-
-    def unrealized_pnl(self, current_price: float) -> float:
-        if not self.is_open:
-            return 0.0
-        return (current_price - self.entry_price) * self.qty * (1 if self.side == "Buy" else -1)
-
-# -----------------------------------------------------------------------------
 # POSITION SIZING
 # -----------------------------------------------------------------------------
 
@@ -123,7 +66,7 @@ def calc_qty(price: float, atr: float, equity_usdt: float = 1000.0) -> float:
 # POSITION MANAGEMENT
 # -----------------------------------------------------------------------------
 
-def manage_position(pos: PaperPosition, current_price: float, atr: float) -> bool:
+def manage_position(symbol: str, pos: PaperPosition, current_price: float, atr: float) -> bool:
     if not pos.is_open:
         return False
 
@@ -148,17 +91,17 @@ def manage_position(pos: PaperPosition, current_price: float, atr: float) -> boo
 
     if pos.side == "Buy":
         if current_price <= effective_sl:
-            pos.close(effective_sl, "SL")
+            pos.close(symbol, effective_sl, "SL")
             return True
         if current_price >= pos.tp:
-            pos.close(pos.tp, "TP")
+            pos.close(symbol, pos.tp, "TP")
             return True
     else:
         if current_price >= effective_sl:
-            pos.close(effective_sl, "SL")
+            pos.close(symbol, effective_sl, "SL")
             return True
         if current_price <= pos.tp:
-            pos.close(pos.tp, "TP")
+            pos.close(symbol, pos.tp, "TP")
             return True
 
     return False
@@ -254,7 +197,7 @@ def main():
                 # -- 4. Управление позицией -----------------------------------
                 pos = positions[sym]
                 if pos.is_open:
-                    manage_position(pos, price, atr)
+                    manage_position(sym, pos, price, atr)
 
                 # -- 5. Открытие новой позиции --------------------------------
                 if not pos.is_open and not loss_guard.halted and model_mgr.is_trained():

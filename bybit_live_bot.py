@@ -504,4 +504,10 @@ def main():
 
 
 if __name__ == "__main__":
+    if not cfg.API_KEY or not cfg.API_SECRET:
+        logger.error(
+            "API keys not configured! Set BYBIT_API_KEY and BYBIT_API_SECRET "
+            "env vars or edit config.py"
+        )
+        sys.exit(1)
     main()

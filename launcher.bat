@@ -1,9 +1,9 @@
-cd "C:\Users\slepk\OneDrive\Рабочий стол\Новая папка (20)"
+cd /d "%~dp0"
 
 @'
 @echo off
 REM === Crypto Scanner: Live + Edge Test ===
-cd /d "C:\Users\slepk\OneDrive\Рабочий стол\Новая папка (20)"
+cd /d "%~dp0"
 
 REM Активируем виртуальное окружение
 call .venv\Scripts\activate.bat
